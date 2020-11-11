@@ -14,7 +14,7 @@ syscall stacktrace(int pid)
 
 	if (pid != 0 && isBadProcessID(pid))
 		return SYSERR;
-	if (pid == currentProcess) {
+	if (pid == currentProcessID) {
 		asm("movl %%esp, %0\n" :"=r"(sp));
 		asm("movl %%ebp, %0\n" :"=r"(fp));
 	} else {

@@ -1,0 +1,5 @@
+set disassembly-flavor intel
+target remote :1234
+file xinu.elf
+b reschedule
+c

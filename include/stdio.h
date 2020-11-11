@@ -14,9 +14,9 @@ extern	int32	fscanf(int32, char *, int32);
 
 /* Definintion of standard input/ouput/error used with shell commands */
 
-#define	stdin	((processTable[currentProcess]).descriptors[0])
-#define	stdout	((processTable[currentProcess]).descriptors[1])
-#define	stderr	((processTable[currentProcess]).descriptors[2])
+#define	stdin	((processTable[currentProcessID]).descriptors[0])
+#define	stdout	((processTable[currentProcessID]).descriptors[1])
+#define	stderr	((processTable[currentProcessID]).descriptors[2])
 
 
 /* Prototypes for formatted output functions */

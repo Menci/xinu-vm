@@ -173,11 +173,11 @@ void	trap (
 
 	kprintf("Xinu trap!\n");
 	if (inum < 16) {
-		kprintf("exception %d (%s) currentProcess %d (%s)\n", inum,
-			inames[inum], currentProcess, processTable[currentProcess].processName);
+		kprintf("exception %d (%s) currentProcessID %d (%s)\n", inum,
+			inames[inum], currentProcessID, processTable[currentProcessID].processName);
 	} else {
-		kprintf("exception %d currentProcess %d (%s)\n", inum, currentProcess,
-			processTable[currentProcess].processName);
+		kprintf("exception %d currentProcessID %d (%s)\n", inum, currentProcessID,
+			processTable[currentProcessID].processName);
 	}
 
 	/* Adjust stack pointer to get debugging information 	*/

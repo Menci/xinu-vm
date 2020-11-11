@@ -62,7 +62,7 @@ extern	qid16	readyQueue;	/* global ID for list of ready processes*/
 
 #define	CONTEXT	64		/* bytes in a function call context on	*/
 				/* the run-time stack			*/
-#define	TIME_SLICE_UNIT  2		/* time slice in milliseconds		*/
+#define	TIME_SLICE_UNIT  1		/* time slice in milliseconds		*/
 
 /* Size of the stack for the null process */
 

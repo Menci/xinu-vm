@@ -91,6 +91,9 @@ syscall kgetc(void)
 
 extern	void	_doprnt(char *, va_list ap, int (*)(int));
 
+#ifdef kprintf
+#undef kprintf
+#endif
 /*------------------------------------------------------------------------
  * kprintf  -  use polled I/O to print formatted output on the console
  *------------------------------------------------------------------------

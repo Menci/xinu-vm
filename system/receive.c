@@ -13,7 +13,7 @@ umsg32	receive(void)
 	umsg32	msg;			/* Message to return		*/
 
 	mask = disable();
-	prptr = &processTable[currentProcess];
+	prptr = &processTable[currentProcessID];
 	if (prptr->hasMessageToReceive == FALSE) {
 		prptr->state = PR_RECV;
 		reschedule();		/* Block until message arrives	*/

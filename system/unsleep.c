@@ -41,7 +41,7 @@ status	unsleep(
 		queueTable[pidnext].key += queueTable[pid].key;
 	}
 
-	getitem(pid);			/* Unlink process from queue */
+	removeFromQueue(pid);			/* Unlink process from queue */
 	restore(mask);
 	return OK;
 }

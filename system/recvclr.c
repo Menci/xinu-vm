@@ -13,7 +13,7 @@ umsg32	recvclr(void)
 	umsg32	msg;			/* Message to return		*/
 
 	mask = disable();
-	prptr = &processTable[currentProcess];
+	prptr = &processTable[currentProcessID];
 	if (prptr->hasMessageToReceive == TRUE) {
 		msg = prptr->messageToReceive;	/* Retrieve message		*/
 		prptr->hasMessageToReceive = FALSE;/* Reset message flag		*/

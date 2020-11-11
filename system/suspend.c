@@ -28,7 +28,7 @@ syscall	suspend(
 		return SYSERR;
 	}
 	if (prptr->state == PR_READY) {
-		getitem(pid);		    /* Remove a ready process	*/
+		removeFromQueue(pid);		    /* Remove a ready process	*/
 					    /*   from the ready list	*/
 		prptr->state = PR_SUSP;
 	} else {

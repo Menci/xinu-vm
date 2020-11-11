@@ -2,6 +2,8 @@
 
 #include <xinu.h>
 
+// #undef kprintf
+
 /*------------------------------------------------------------------------
  * clkhandler - high level clock interrupt handler
  *------------------------------------------------------------------------
@@ -28,16 +30,16 @@ void	clkhandler(void)
 		/* Decrement the delay for the first process on the	*/
 		/*   sleep queue, and awaken if the count reaches zero	*/
 
-		if((--queueTable[getQueueFirst(sleepQueue)].key) <= 0) {
-			wakeup();
-		}
+		for (qid16 i = getQueueFirst(sleepQueue); i != getQueueTail(sleepQueue); i = queueTable[i].next)
+			queueTable[i].key--;
+		wakeup();
 	}
 
 	/* Decrement the msBeforePreemption counter, and rescheduleule when the */
 	/*   remaining time reaches zero			     */
 
 	if((--msBeforePreempt) <= 0) {
-		msBeforePreempt = TIME_SLICE_UNIT;
+		kprintf("clock: preemption\n");
 		reschedule();
 	}
 }

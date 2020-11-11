@@ -8,5 +8,5 @@
  */
 pid32	getpid(void)
 {
-	return (currentProcess);
+	return (currentProcessID);
 }

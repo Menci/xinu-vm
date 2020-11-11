@@ -27,10 +27,10 @@ syscall	wait(
 	}
 
 	if (--(semptr->count) < 0) {		/* If caller must block	*/
-		prptr = &processTable[currentProcess];
+		prptr = &processTable[currentProcessID];
 		prptr->state = PR_WAIT;	/* Set state to waiting	*/
 		prptr->waitingSemaphore = sem;		/* Record semaphore ID	*/
-		enqueue(currentProcess,semptr->waitingProcessQueue);/* Enqueue on semaphore	*/
+		enqueue(currentProcessID,semptr->waitingProcessQueue);/* Enqueue on semaphore	*/
 		reschedule();			/*   and rescheduleule	*/
 	}
 

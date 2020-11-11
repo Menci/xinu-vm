@@ -32,7 +32,7 @@ extern	syscall	close(did32);
 extern	syscall	control(did32, int32, int32, int32);
 
 /* in file create.c */
-extern	pid32	create(void *, uint32, pri16, char *, uint32, ...);
+extern	pid32	create(void *, uint32, pri16, int32, char *, uint32, ...);
 
 /* in file doContextSwitch.S */
 extern	void	doContextSwitch(void *, void *);
@@ -63,10 +63,10 @@ extern	char	*getbuf(bpid32);
 /* in file getc.c */
 extern	syscall	getc(did32);
 
-/* in file getitem.c */
+/* in file removeFromQueue.c */
 extern	pid32	queuePopFirst(qid16);
 extern	pid32	queuePopLast(qid16);
-extern	pid32	getitem(pid32);
+extern	pid32	removeFromQueue(pid32);
 
 /* in file getmem.c */
 extern	char	*getmem(uint32);

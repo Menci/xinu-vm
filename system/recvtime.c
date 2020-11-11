@@ -21,9 +21,9 @@ umsg32	recvtime(
 
 	/* Schedule wakeup and place process in timed-receive state */
 
-	prptr = &processTable[currentProcess];
+	prptr = &processTable[currentProcessID];
 	if (prptr->hasMessageToReceive == FALSE) {	/* Delay if no message waiting	*/
-		if (queueInsertd(currentProcess,sleepQueue,maxwait) == SYSERR) {
+		if (queueInsertd(currentProcessID,sleepQueue,maxwait) == SYSERR) {
 			restore(mask);
 			return SYSERR;
 		}

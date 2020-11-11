@@ -24,7 +24,7 @@ struct	memblk	memlist;	/* List of free memory blocks		*/
 /* Active system status */
 
 int	processCount;		/* Total number of live processes	*/
-pid32	currentProcess;		/* ID of currently executing process	*/
+pid32	currentProcessID;		/* ID of currently executing process	*/
 
 /* Control sequence to reset the console colors and cusor positiion	*/
 
@@ -81,7 +81,7 @@ void	nulluser()
 
 	/* Create a process to finish startup and start main */
 
-	resume(create((void *)startup, INITSTK, INITPRIO,
+	resume(create((void *)startup, INITSTK, INITPRIO, INIT_TIME_SLICE,
 					"Startup process", 0, NULL));
 
 	/* Become the Null process (i.e., guarantee that the CPU has	*/
@@ -108,7 +108,7 @@ local process	startup(void)
 {
 	/* Create a process to execute function main() */
 
-	resume(create((void *)main, INITSTK, INITPRIO,
+	resume(create((void *)main, INITSTK, INITPRIO, INIT_TIME_SLICE,
 					"Main process", 0, NULL));
 
 	/* Startup process exits at this point */
@@ -126,7 +126,7 @@ local process	startup(void)
 static	void	sysinit()
 {
 	int32	i;
-	struct	ProcessEntry	*prptr;		/* Ptr to process table entry	*/
+	struct	ProcessEntry	*process;		/* Ptr to process table entry	*/
 	struct	SemaphoreEntry	*semptr;	/* Ptr to semaphore table entry	*/
 
 	/* Platform Specific Initialization */
@@ -159,23 +159,26 @@ static	void	sysinit()
 	/* Initialize process table entries free */
 
 	for (i = 0; i < NPROC; i++) {
-		prptr = &processTable[i];
-		prptr->state = PR_FREE;
-		prptr->processName[0] = NULLCH;
-		prptr->stackPointerBase = NULL;
-		prptr->priority = 0;
+		process = &processTable[i];
+		process->state = PR_FREE;
+		process->processName[0] = NULLCH;
+		process->stackPointerBase = NULL;
+		process->priority = 0;
 	}
 
 	/* Initialize the Null process entry */	
 
-	prptr = &processTable[NULLPROC];
-	prptr->state = PR_CURR;
-	prptr->priority = 0;
-	strncpy(prptr->processName, "prnull", 7);
-	prptr->stackPointerBase = getstk(NULLSTK);
-	prptr->stackSize = NULLSTK;
-	prptr->stackPointer = 0;
-	currentProcess = NULLPROC;
+	process = &processTable[NULLPROC];
+	process->state = PR_CURR;
+	process->priority = 0;
+	process->timeSlice = process->currentTimeSlice = -1;
+	process->timeSliceReassignCount = 0;
+	process->totalCpuTime = 0;
+	strncpy(process->processName, "prnull", 7);
+	process->stackPointerBase = getstk(NULLSTK);
+	process->stackSize = NULLSTK;
+	process->stackPointer = 0;
+	currentProcessID = NULLPROC;
 	
 	/* Initialize semaphores */
 

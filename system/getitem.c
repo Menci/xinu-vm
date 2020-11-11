@@ -1,4 +1,4 @@
-/* getitem.c - queuePopFirst, queuePopLast, getitem */
+/* removeFromQueue.c - queuePopFirst, queuePopLast, removeFromQueue */
 
 #include <xinu.h>
 
@@ -18,7 +18,7 @@ pid32	queuePopFirst(
 	}
 
 	head = getQueueHead(q);
-	return getitem(queueTable[head].next);
+	return removeFromQueue(queueTable[head].next);
 }
 
 /*------------------------------------------------------------------------
@@ -37,14 +37,14 @@ pid32	queuePopLast(
 	}
 
 	tail = getQueueTail(q);
-	return getitem(queueTable[tail].prev);
+	return removeFromQueue(queueTable[tail].prev);
 }
 
 /*------------------------------------------------------------------------
- *  getitem  -  Remove a process from an arbitrary point in a queue
+ *  removeFromQueue  -  Remove a process from an arbitrary point in a queue
  *------------------------------------------------------------------------
  */
-pid32	getitem(
+pid32	removeFromQueue(
 	  pid32		pid		/* ID of process to remove	*/
 	)
 {

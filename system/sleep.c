@@ -2,6 +2,8 @@
 
 #include <xinu.h>
 
+// #undef kprintf
+
 #define	MAXSECONDS	2147483		/* Max seconds per 32-bit msec	*/
 
 /*------------------------------------------------------------------------
@@ -33,21 +35,22 @@ syscall	sleepms(
 		return SYSERR;
 	}
 
-	if (delay == 0) {
-		yield();
-		return OK;
-	}
-
-	/* Delay calling process */
-
 	mask = disable();
-	if (queueInsertd(currentProcess, sleepQueue, delay) == SYSERR) {
-		restore(mask);
-		return SYSERR;
+
+	kprintf("sleepms: process [%s] entered sleep\n", processTable[currentProcessID].processName);
+
+	if (delay > 0) {
+		/* Delay calling process */
+
+		if (queueInsertd(currentProcessID, sleepQueue, delay) == SYSERR) {
+			restore(mask);
+			return SYSERR;
+		}
+
+		processTable[currentProcessID].state = PR_SLEEP;
+		reschedule();
 	}
 
-	processTable[currentProcess].state = PR_SLEEP;
-	reschedule();
 	restore(mask);
 	return OK;
 }

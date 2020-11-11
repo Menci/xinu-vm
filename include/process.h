@@ -28,6 +28,7 @@
 
 #define	INITSTK		65536	/* Initial process stack size		*/
 #define	INITPRIO	20	/* Initial process priority		*/
+#define	INIT_TIME_SLICE	20	/* Initial process priority		*/
 #define	INITRET		userret	/* Address to which process returns	*/
 
 /* Inline code to check process ID (assumes interrupts are disabled)	*/
@@ -45,6 +46,10 @@
 struct ProcessEntry {		/* Entry in the process table		*/
 	uint16	state;	/* Process state: PR_CURR, etc.		*/
 	pri16	priority;		/* Process priority			*/
+	int32	timeSlice;
+	int32	currentTimeSlice;
+	int32   timeSliceReassignCount;
+	int32   totalCpuTime;
 	char	*stackPointer;	/* Saved stack pointer			*/
 	char	*stackPointerBase;	/* Base of run time stack		*/
 	uint32	stackSize;	/* Stack length in bytes		*/
@@ -61,7 +66,7 @@ struct ProcessEntry {		/* Entry in the process table		*/
 
 extern	struct	ProcessEntry processTable[];
 extern	int32	processCount;	/* Currently active processes		*/
-extern	pid32	currentProcess;	/* Currently executing process		*/
+extern	pid32	currentProcessID;	/* Currently executing process		*/
 
 #endif
 

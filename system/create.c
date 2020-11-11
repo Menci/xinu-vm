@@ -12,6 +12,7 @@ pid32	create(
 	  void		*funcaddr,	/* Address of the function	*/
 	  uint32	ssize,		/* Stack size in bytes		*/
 	  pri16		priority,	/* Process priority > 0		*/
+	  int32		timeSlice,	/* Process timeSlice > 0		*/
 	  char		*name,		/* Name (for debugging)		*/
 	  uint32	nargs,		/* Number of args that follow	*/
 	  ...
@@ -20,7 +21,7 @@ pid32	create(
 	uint32		savsp, *pushsp;
 	intmask 	mask;    	/* Interrupt mask		*/
 	pid32		pid;		/* Stores new process id	*/
-	struct	ProcessEntry	*prptr;		/* Pointer to proc. table entry */
+	struct	ProcessEntry	*process;		/* Pointer to proc. table entry */
 	int32		i;
 	uint32		*a;		/* Points to list of args	*/
 	uint32		*saddr;		/* Stack address		*/
@@ -36,24 +37,28 @@ pid32	create(
 	}
 
 	processCount++;
-	prptr = &processTable[pid];
+	process = &processTable[pid];
 
 	/* Initialize process table entry for new process */
-	prptr->state = PR_SUSP;	/* Initial state is suspended	*/
-	prptr->priority = priority;
-	prptr->stackPointerBase = (char *)saddr;
-	prptr->stackSize = ssize;
-	prptr->processName[PNMLEN-1] = NULLCH;
-	for (i=0 ; i<PNMLEN-1 && (prptr->processName[i]=name[i])!=NULLCH; i++)
+	process->state = PR_SUSP;	/* Initial state is suspended	*/
+	process->priority = priority;
+	process->timeSlice = timeSlice;
+	process->currentTimeSlice = timeSlice;
+	process->timeSliceReassignCount = 0;
+	process->totalCpuTime = 0;
+	process->stackPointerBase = (char *)saddr;
+	process->stackSize = ssize;
+	process->processName[PNMLEN-1] = NULLCH;
+	for (i=0 ; i<PNMLEN-1 && (process->processName[i]=name[i])!=NULLCH; i++)
 		;
-	prptr->waitingSemaphore = -1;
-	prptr->parentProcess = (pid32)getpid();
-	prptr->hasMessageToReceive = FALSE;
+	process->waitingSemaphore = -1;
+	process->parentProcess = (pid32)getpid();
+	process->hasMessageToReceive = FALSE;
 
 	/* Set up stdin, stdout, and stderr descriptors for the shell	*/
-	prptr->descriptors[0] = CONSOLE;
-	prptr->descriptors[1] = CONSOLE;
-	prptr->descriptors[2] = CONSOLE;
+	process->descriptors[0] = CONSOLE;
+	process->descriptors[1] = CONSOLE;
+	process->descriptors[2] = CONSOLE;
 
 	/* Initialize stack as if the process was called		*/
 
@@ -92,7 +97,7 @@ pid32	create(
 	*--saddr = savsp;		/* %ebp (while finishing doContextSwitch)	*/
 	*--saddr = 0;			/* %esi */
 	*--saddr = 0;			/* %edi */
-	*pushsp = (unsigned long) (prptr->stackPointer = (char *)saddr);
+	*pushsp = (unsigned long) (process->stackPointer = (char *)saddr);
 	restore(mask);
 	return pid;
 }
