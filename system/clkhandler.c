@@ -2,7 +2,7 @@
 
 #include <xinu.h>
 
-// #undef kprintf
+#define kprintf(...)
 
 /*------------------------------------------------------------------------
  * clkhandler - high level clock interrupt handler

@@ -10,7 +10,6 @@ local	int newpid();
  */
 pid32	create(
 	  void		*funcaddr,	/* Address of the function	*/
-	  uint32	ssize,		/* Stack size in bytes		*/
 	  pri16		priority,	/* Process priority > 0		*/
 	  int32		timeSlice,	/* Process timeSlice > 0		*/
 	  char		*name,		/* Name (for debugging)		*/
@@ -18,20 +17,15 @@ pid32	create(
 	  ...
 	)
 {
-	uint32		savsp, *pushsp;
+	uint32		savsp;
 	intmask 	mask;    	/* Interrupt mask		*/
 	pid32		pid;		/* Stores new process id	*/
 	struct	ProcessEntry	*process;		/* Pointer to proc. table entry */
 	int32		i;
 	uint32		*a;		/* Points to list of args	*/
-	uint32		*saddr;		/* Stack address		*/
 
 	mask = disable();
-	if (ssize < MINSTK)
-		ssize = MINSTK;
-	ssize = (uint32) roundmb(ssize);
-	if ( (priority < 1) || ((pid=newpid()) == SYSERR) ||
-	     ((saddr = (uint32 *)getstk(ssize)) == (uint32 *)SYSERR) ) {
+	if ((priority < 1) || ((pid = newpid()) == SYSERR)) {
 		restore(mask);
 		return SYSERR;
 	}
@@ -46,8 +40,10 @@ pid32	create(
 	process->currentTimeSlice = timeSlice;
 	process->timeSliceReassignCount = 0;
 	process->totalCpuTime = 0;
-	process->stackPointerBase = (char *)saddr;
-	process->stackSize = ssize;
+	process->pageDirectoryPhysicalAddress = allocateVirtualMemorySpace();
+	process->heapSize = 0;
+	process->stackEnd = VM_STACK_VIRTUAL_ADDRESS_HIGH;
+	process->stackSize = VM_STACK_SIZE_PER_PROCESS;
 	process->processName[PNMLEN-1] = NULLCH;
 	for (i=0 ; i<PNMLEN-1 && (process->processName[i]=name[i])!=NULLCH; i++)
 		;
@@ -62,42 +58,67 @@ pid32	create(
 
 	/* Initialize stack as if the process was called		*/
 
-	*saddr = STACKMAGIC;
-	savsp = (uint32)saddr;
+	static uint32 initialContentOfStackLastPage[VM_PAGE_SIZE / sizeof(uint32)];
+	uint32 *stackBufferAddress = initialContentOfStackLastPage + VM_PAGE_SIZE / sizeof(uint32);
+	uint32 *stackVirtualAddress = VM_STACK_VIRTUAL_ADDRESS_HIGH;
+	stackBufferAddress--;
+	stackVirtualAddress--;
+
+	*stackBufferAddress = STACKMAGIC;
+	savsp = (uint32)stackVirtualAddress;
 
 	/* Push arguments */
 	a = (uint32 *)(&nargs + 1);	/* Start of args		*/
 	a += nargs -1;			/* Last argument		*/
-	for ( ; nargs > 0 ; nargs--)	/* Machine dependent; copy args	*/
-		*--saddr = *a--;	/* onto created process's stack	*/
-	*--saddr = (long)INITRET;	/* Push on return address	*/
+	for ( ; nargs > 0 ; nargs--) {	/* Machine dependent; copy args	*/
+		--stackVirtualAddress;
+		*--stackBufferAddress = *a--;	/* onto created process's stack	*/
+	}
+	--stackVirtualAddress;
+	*--stackBufferAddress = (long)INITRET;	/* Push on return address	*/
 
 	/* The following entries on the stack must match what doContextSwitch	*/
 	/*   expects a saved process state to contain: ret address,	*/
 	/*   ebp, interrupt mask, flags, registers, and an old SP	*/
 
-	*--saddr = (long)funcaddr;	/* Make the stack look like it's*/
+	--stackVirtualAddress;
+	*--stackBufferAddress = (long)funcaddr;	/* Make the stack look like it's*/
 					/*   half-way through a call to	*/
 					/*   doContextSwitch that "returns" to the*/
 					/*   new process		*/
-	*--saddr = savsp;		/* This will be register ebp	*/
+	--stackVirtualAddress;
+	*--stackBufferAddress = savsp;		/* This will be register ebp	*/
 					/*   for process exit		*/
-	savsp = (uint32) saddr;		/* Start of frame for doContextSwitch	*/
-	*--saddr = 0x00000200;		/* New process runs with	*/
+	savsp = (uint32) stackVirtualAddress;		/* Start of frame for doContextSwitch	*/
+	--stackVirtualAddress;
+	*--stackBufferAddress = 0x00000200;		/* New process runs with	*/
 					/*   interrupts enabled		*/
 
 	/* Basically, the following emulates an x86 "pushal" instruction*/
 
-	*--saddr = 0;			/* %eax */
-	*--saddr = 0;			/* %ecx */
-	*--saddr = 0;			/* %edx */
-	*--saddr = 0;			/* %ebx */
-	*--saddr = 0;			/* %esp; value filled in below	*/
-	pushsp = saddr;			/* Remember this location	*/
-	*--saddr = savsp;		/* %ebp (while finishing doContextSwitch)	*/
-	*--saddr = 0;			/* %esi */
-	*--saddr = 0;			/* %edi */
-	*pushsp = (unsigned long) (process->stackPointer = (char *)saddr);
+	--stackVirtualAddress;
+	*--stackBufferAddress = 0;			/* %eax */
+	--stackVirtualAddress;
+	*--stackBufferAddress = 0;			/* %ecx */
+	--stackVirtualAddress;
+	*--stackBufferAddress = 0;			/* %edx */
+	--stackVirtualAddress;
+	*--stackBufferAddress = 0;			/* %ebx */
+	--stackVirtualAddress;
+	*--stackBufferAddress = 0;			/* %esp; value filled in below	*/
+	uint32 *pushSpBufferAddress = stackBufferAddress;			/* Remember this location	*/
+	--stackVirtualAddress;
+	*--stackBufferAddress = savsp;		/* %ebp (while finishing doContextSwitch)	*/
+	--stackVirtualAddress;
+	*--stackBufferAddress = 0;			/* %esi */
+	--stackVirtualAddress;
+	*--stackBufferAddress = 0;			/* %edi */
+	*stackBufferAddress = (unsigned long) (process->stackCurrent = (char *)stackVirtualAddress);
+
+	// Initialize the stack
+	allocateVirtualMemoryPages(process->pageDirectoryPhysicalAddress, VM_STACK_VIRTUAL_PAGE_ID_BEGIN, VM_STACK_PAGES_PER_PROCESS);
+	writeToAnotherVirtualMemorySpacePage(process->pageDirectoryPhysicalAddress, VM_STACK_VIRTUAL_PAGE_ID_END - 1, initialContentOfStackLastPage);
+
 	restore(mask);
 	return pid;
 }

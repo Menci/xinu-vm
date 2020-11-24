@@ -10,6 +10,9 @@
 #include <mark.h>
 #include <semaphore.h>
 #include <memory.h>
+#include <vm.h>
+#include <heap.h>
+#include <malloc.h>
 #include <bufpool.h>
 #include <clock.h>
 #include <ports.h>
@@ -27,8 +30,6 @@
 #include <multiboot.h>
 #include <stdio.h>
 #include <string.h>
-
-#define kprintf(...)
 
 #endif
 

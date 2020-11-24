@@ -56,6 +56,8 @@
 #define NULLSTK			(8192)		/* This must match NULLSTK defined in kernel.h 		*/
 
 	.data
+#define INITIALIZE_STACK_SIZE 4194304 /* 4M initialization stack */
+stack:  .space  INITIALIZE_STACK_SIZE
 
 	.align	16	
 	.globl	gdt
@@ -213,8 +215,10 @@ gdt1:
 	movw	%ax, %ss
 	
 	/*
-	 * Call the nulluser to initialize the system
+	 * Call the nulluser with initialize stack to initialize the system
 	 */
+	leal    stack, %esp
+	addl	$INITIALIZE_STACK_SIZE, %esp
 	call	nulluser
 	call	halt
 

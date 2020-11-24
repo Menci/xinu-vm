@@ -19,7 +19,6 @@ local	process startup(void);	/* Process to finish startup tasks	*/
 
 struct	ProcessEntry	processTable[NPROC];	/* Process table			*/
 struct	SemaphoreEntry	semtab[NSEM];	/* Semaphore table			*/
-struct	memblk	memlist;	/* List of free memory blocks		*/
 
 /* Active system status */
 
@@ -46,25 +45,11 @@ pid32	currentProcessID;		/* ID of currently executing process	*/
 
 void	nulluser()
 {	
-	struct	memblk	*memptr;	/* Ptr to memory block		*/
-	uint32	free_mem;		/* Total amount of free memory	*/
-	
 	/* Initialize the system */
 
 	sysinit();
 
 	/* Output Xinu memory layout */
-	free_mem = 0;
-	for (memptr = memlist.mnext; memptr != NULL;
-						memptr = memptr->mnext) {
-		free_mem += memptr->mlength;
-	}
-	
-	kprintf("%10d bytes of free memory.  Free list:\n", free_mem);
-	for (memptr=memlist.mnext; memptr!=NULL;memptr = memptr->mnext) {
-	    kprintf("           [0x%08X to 0x%08X]\n",
-		(uint32)memptr, ((uint32)memptr) + memptr->mlength - 1);
-	}
 
 	kprintf("%10d bytes of Xinu code.\n",
 		(uint32)&etext - (uint32)&text);
@@ -81,7 +66,7 @@ void	nulluser()
 
 	/* Create a process to finish startup and start main */
 
-	resume(create((void *)startup, INITSTK, INITPRIO, INIT_TIME_SLICE,
+	resume(create((void *)startup, INITPRIO, INIT_TIME_SLICE,
 					"Startup process", 0, NULL));
 
 	/* Become the Null process (i.e., guarantee that the CPU has	*/
@@ -108,7 +93,7 @@ local process	startup(void)
 {
 	/* Create a process to execute function main() */
 
-	resume(create((void *)main, INITSTK, INITPRIO, INIT_TIME_SLICE,
+	resume(create((void *)main, INITPRIO, INIT_TIME_SLICE,
 					"Main process", 0, NULL));
 
 	/* Startup process exits at this point */
@@ -142,9 +127,10 @@ static	void	sysinit()
 
 	initevec();
 	
-	/* Initialize free memory list */
+	/* Initialize virtual memory */
 	
 	meminit();
+	PageDirectory initializationPageDirectoryPhysicalAddress = initializeVirtualMemory();
 
 	/* Initialize system variables */
 
@@ -162,7 +148,7 @@ static	void	sysinit()
 		process = &processTable[i];
 		process->state = PR_FREE;
 		process->processName[0] = NULLCH;
-		process->stackPointerBase = NULL;
+		process->stackEnd = NULL;
 		process->priority = 0;
 	}
 
@@ -174,10 +160,12 @@ static	void	sysinit()
 	process->timeSlice = process->currentTimeSlice = -1;
 	process->timeSliceReassignCount = 0;
 	process->totalCpuTime = 0;
+	process->pageDirectoryPhysicalAddress = initializationPageDirectoryPhysicalAddress;
 	strncpy(process->processName, "prnull", 7);
-	process->stackPointerBase = getstk(NULLSTK);
-	process->stackSize = NULLSTK;
-	process->stackPointer = 0;
+	process->stackEnd = VM_STACK_VIRTUAL_ADDRESS_HIGH;
+	process->stackSize = VM_STACK_SIZE_PER_PROCESS;
+	allocateVirtualMemoryPages(initializationPageDirectoryPhysicalAddress, VM_STACK_VIRTUAL_PAGE_ID_BEGIN, VM_STACK_PAGES_PER_PROCESS);
+	process->stackCurrent = 0;
 	currentProcessID = NULLPROC;
 	
 	/* Initialize semaphores */

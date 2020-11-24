@@ -9,6 +9,9 @@
  */
 syscall stacktrace(int pid)
 {
+	kprintf("stacktrace: not implemented\n");
+	return SYSERR;
+
 	struct ProcessEntry	*proc = &processTable[pid];
 	unsigned long	*sp, *fp;
 
@@ -18,12 +21,12 @@ syscall stacktrace(int pid)
 		asm("movl %%esp, %0\n" :"=r"(sp));
 		asm("movl %%ebp, %0\n" :"=r"(fp));
 	} else {
-		sp = (unsigned long *)proc->stackPointer;
+		sp = (unsigned long *)proc->stackCurrent;
 		fp = sp + 2; 		/* where doContextSwitch leaves it */
 	}
-	kprintf("sp %X fp %X proc->stackPointerBase %X\n", sp, fp, proc->stackPointerBase);
+	kprintf("sp %X fp %X proc->stackEnd %X\n", sp, fp, proc->stackEnd);
 #ifdef STKDETAIL
-	while (sp < (unsigned long *)proc->stackPointerBase) {
+	while (sp < (unsigned long *)proc->stackEnd) {
 		for (; sp < fp; sp++)
 			kprintf("DATA (%08X) %08X (%d)\n", sp, *sp, *sp);
 		if (*sp == STACKMAGIC)
@@ -38,7 +41,7 @@ syscall stacktrace(int pid)
 		sp++;
 	}
 	kprintf("STACKMAGIC (should be %X): %X\n", STACKMAGIC, *sp);
-	if (sp != (unsigned long *)proc->stackPointerBase) {
+	if (sp != (unsigned long *)proc->stackEnd) {
 		kprintf("unexpected short stack\n");
 		return SYSERR;
 	}

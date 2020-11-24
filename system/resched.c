@@ -4,7 +4,7 @@
 
 struct	defer	Defer;
 
-// #undef kprintf
+#define kprintf(...)
 
 uint32 rescheduleCount;
 
@@ -28,7 +28,7 @@ void	reschedule(void)		/* Assumes interrupts are disabled	*/
 	struct ProcessEntry *oldProcess = &processTable[currentProcessID];
 
 	// If this is NOT a preempt, calculate the used amount of its time slice
-	bool8 isPreempt = msBeforePreempt == 0;
+	// bool8 isPreempt = msBeforePreempt == 0;
 	int32 usedCpuTime = TIME_SLICE_UNIT - msBeforePreempt;
 	oldProcess->totalCpuTime += usedCpuTime;
 
@@ -117,7 +117,7 @@ void	reschedule(void)		/* Assumes interrupts are disabled	*/
 		msBeforePreempt = TIME_SLICE_UNIT;
 
 	if (oldProcess != newProcess)
-		doContextSwitch(&oldProcess->stackPointer, &newProcess->stackPointer);
+		doContextSwitch(&oldProcess->stackCurrent, &newProcess->stackCurrent, newProcess->pageDirectoryPhysicalAddress, oldProcess->state == PR_FREE);
 
 	/* Old process returns here when resumed */
 

@@ -55,8 +55,8 @@ shellcmd xsh_ps(int nargs, char *args[])
 		}
 		printf("%3d %-16s %s %4d %4d 0x%08X 0x%08X %8d\n",
 			i, prptr->processName, pstate[(int)prptr->state],
-			prptr->priority, prptr->parentProcess, prptr->stackPointerBase,
-			prptr->stackPointer, prptr->stackSize);
+			prptr->priority, prptr->parentProcess, prptr->stackEnd,
+			prptr->stackCurrent, prptr->stackSize);
 	}
 	return 0;
 }

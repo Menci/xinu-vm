@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "cstdlib": "c",
+        "cstdio": "cpp"
     }
 }

@@ -49,19 +49,7 @@ shellcmd xsh_memstat(int nargs, char *args[])
  */
 static void printFreeList(void)
 {
-	struct memblk *block;
-
-	/* Output a heading for the free list */
-
-	printf("Free List:\n");
-	printf("Block address  Length (dec)  Length (hex)\n");
-	printf("-------------  ------------  ------------\n");
-	
-	for (block = memlist.mnext; block != NULL; block = block->mnext) {
-		printf("  0x%08x    %9d     0x%08x\n", block,
-			block->mlength, block->mlength);
-	}
-	printf("\n");
+	printf("printFreeList: not implemented\n");
 }
 
 extern void start(void);
@@ -76,8 +64,6 @@ static void printMemUse(void)
 	int i;				/* Index into process table	*/
 	uint32 code = 0;		/* Total Xinu code memory	*/
 	uint32 stack = 0;		/* Total used stack memory	*/
-	uint32 kheap = 0;		/* Free kernel heap memory	*/
-	uint32 kfree = 0;		/* Total free memory		*/
 	struct memblk *block;	 	/* Ptr to memory block		*/
 
 	/* Calculate amount of text memory */
@@ -93,21 +79,10 @@ static void printMemUse(void)
 		}
 	}
 
-	/* Calculate the amount of memory on the free list */
-
-	for (block = memlist.mnext; block != NULL; block = block->mnext) {
-		kfree += block->mlength;
-	}
-
-	/* Calculate the amount of free kernel heap memory */
-
-	kheap = kfree - stack;
-
 	/* Output statistics on current memory use */
 
 	printf("Current system memory statistics:\n");
 	printf("---------------------------------\n");
 	printf("%10d bytes (0x%08x) of Xinu code\n", code, code);
 	printf("%10d bytes (0x%08x) of allocated stack space\n", stack, stack);
-	printf("%10d bytes (0x%08x) of available kernel heap space\n\n", kheap, kheap);
 }

@@ -29,7 +29,6 @@ syscall	kill(
 	for (i=0; i<3; i++) {
 		close(prptr->descriptors[i]);
 	}
-	freestk(prptr->stackPointerBase, prptr->stackSize);
 
 	switch (prptr->state) {
 	case PR_CURR:

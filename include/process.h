@@ -2,6 +2,8 @@
 #define _process_H
 /* process.h - isBadProcessID */
 
+#include <vm.h>
+
 /* Maximum number of processes in the system */
 
 #ifndef NPROC
@@ -44,21 +46,23 @@
 /* Definition of the process table (multiple of 32 bits) */
 
 struct ProcessEntry {		/* Entry in the process table		*/
-	uint16	state;	/* Process state: PR_CURR, etc.		*/
-	pri16	priority;		/* Process priority			*/
-	int32	timeSlice;
-	int32	currentTimeSlice;
-	int32   timeSliceReassignCount;
-	int32   totalCpuTime;
-	char	*stackPointer;	/* Saved stack pointer			*/
-	char	*stackPointerBase;	/* Base of run time stack		*/
-	uint32	stackSize;	/* Stack length in bytes		*/
-	char	processName[PNMLEN];	/* Process name				*/
-	sid32	waitingSemaphore;		/* Semaphore on which process waits	*/
-	pid32	parentProcess;	/* ID of the creating process		*/
-	umsg32	messageToReceive;		/* Message sent to this process		*/
-	bool8	hasMessageToReceive;	/* Nonzero iff msg is valid		*/
-	int16	descriptors[NDESC];	/* Device descriptors for process	*/
+	uint16	      state;	/* Process state: PR_CURR, etc.		*/
+	pri16	      priority;		/* Process priority			*/
+	int32		  timeSlice;
+	int32		  currentTimeSlice;
+	int32		  timeSliceReassignCount;
+	int32		  totalCpuTime;
+	PageDirectory pageDirectoryPhysicalAddress;
+	uint32        heapSize;
+	char		  *stackCurrent;	/* Saved stack pointer			*/
+	char		  *stackEnd;	/* Base of run time stack		*/
+	uint32		  stackSize;	/* Stack length in bytes		*/
+	char		  processName[PNMLEN];	/* Process name				*/
+	sid32		  waitingSemaphore;		/* Semaphore on which process waits	*/
+	pid32		  parentProcess;	/* ID of the creating process		*/
+	umsg32		  messageToReceive;		/* Message sent to this process		*/
+	bool8		  hasMessageToReceive;	/* Nonzero iff msg is valid		*/
+	int16		  descriptors[NDESC];	/* Device descriptors for process	*/
 };
 
 /* Marker for the top of a process stack (used to help detect overflow)	*/

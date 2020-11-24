@@ -48,7 +48,7 @@ status	addargs(
 	/*	args array will be stored followed by the argument	*/
 	/*	strings							*/
 	
-	aloc = (uint32) (prptr->stackPointerBase
+	aloc = (uint32) (prptr->stackEnd
 		- prptr->stackSize + sizeof(uint32));
 	argloc = (uint32*) ((aloc + 3) & ~0x3);	/* round multiple of 4	*/
 
@@ -74,8 +74,8 @@ status	addargs(
 
 	/* Find the second argument in process's stack */
 
-	for (search = (uint32 *)prptr->stackPointer;
-	     search < (uint32 *)prptr->stackPointerBase; search++) {
+	for (search = (uint32 *)prptr->stackCurrent;
+	     search < (uint32 *)prptr->stackEnd; search++) {
 
 		/* If found, replace with the address of the args vector*/
 
