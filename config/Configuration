@@ -64,6 +64,21 @@ nam:
 		-w ioerr 	-s ioerr 	-n ioerr
 		-intr ioerr
 
+/* type of screen device */
+vga:
+	on top
+		-i vgainit 	-o ionull 	-c ionull
+		-r ioerr 	-g ioerr 	-p vgaputc
+		-w vgawrite	-s ioerr 	-n ioerr
+		-intr ionull
+
+/* type of keyboard device */
+kbd:
+	on top
+		-i kbdinit 	-o ionull 	-c ionull
+		-r kbdread 	-g kbdgetc 	-p ioerr
+		-w ioerr	-s ioerr 	-n ioerr
+		-intr kbddisp
 %%
 
 /* Actual device declarations that each give the name of a device that	*/
@@ -94,6 +109,13 @@ nam:
    LFILE4 is lfl on lfs
    LFILE5 is lfl on lfs
 
+   /* Define a screen device */
+
+   SCREEN is vga on top
+
+   /* Define a keyboard device */
+
+   KEYBOARD is kbd on top -irq 0041
 %%
 
 /* Configuration and Size Constants */

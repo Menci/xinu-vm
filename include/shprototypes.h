@@ -63,6 +63,9 @@ extern	shellcmd  xsh_sleep	(int32, char *[]);
 /* in file xsh_sort.c */
 extern	shellcmd  xsh_sort	(int32, char *[]);
 
+/* in file xsh_kbdtest.c */
+extern	shellcmd  xsh_kbdtest	(int32, char *[]);
+
 /* in file xsh_udpdump.c */
 extern	shellcmd  xsh_udpdump	(int32, char *[]);
 

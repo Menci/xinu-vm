@@ -36,6 +36,8 @@ extern	struct	dentry	devtab[]; /* one entry per device */
 #define LFILE3               8	/* type lfl      */
 #define LFILE4               9	/* type lfl      */
 #define LFILE5              10	/* type lfl      */
+#define SCREEN              11	/* type vga      */
+#define KEYBOARD            12	/* type kbd      */
 
 /* Control block sizes */
 
@@ -45,8 +47,10 @@ extern	struct	dentry	devtab[]; /* one entry per device */
 #define	Nlfs	1
 #define	Nlfl	6
 #define	Nnam	1
+#define	Nvga	1
+#define	Nkbd	1
 
-#define NDEVS 11
+#define NDEVS 13
 
 
 /* Configuration and Size Constants */

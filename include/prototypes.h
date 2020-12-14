@@ -398,6 +398,26 @@ extern	devcall	ttyread(struct dentry *, char *, int32);
 /* in file ttywrite.c */
 extern	devcall	ttywrite(struct dentry *, char *, int32);
 
+/* in file kbddisp.c */
+extern	interrupt	kbddisp(void);
+
+/* in file kbd.c */
+extern	devcall	kbdinit(struct dentry *);
+
+/* in file kbd.c */
+extern	devcall	kbdgetc(struct dentry *);
+
+/* in file kbd.c */
+extern	devcall	kbdread(struct dentry *, char *, int32);
+
+/* in file vga.c */
+extern	devcall	vgainit(struct dentry *);
+
+/* in file vga.c */
+extern	devcall	vgaputc(struct dentry *, char);
+
+/* in file vga.c */
+extern	devcall	vgawrite(struct dentry *, char *, int32);
 
 /* in file unsleep.c */
 extern	syscall	unsleep(pid32);

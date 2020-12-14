@@ -94,5 +94,19 @@ struct	dentry	devtab[NDEVS] =
 	  (void *)lflinit, (void *)ioerr, (void *)lflclose,
 	  (void *)lflread, (void *)lflwrite, (void *)lflseek,
 	  (void *)lflgetc, (void *)lflputc, (void *)lflcontrol,
-	  (void *)0x0, (void *)ionull, 0 }
+	  (void *)0x0, (void *)ionull, 0 },
+
+/* SCREEN is vga */
+	{ 11, 0, "SCREEN",
+	  (void *)vgainit, (void *)ionull, (void *)ionull,
+	  (void *)ioerr, (void *)vgawrite, (void *)ioerr,
+	  (void *)ioerr, (void *)vgaputc, (void *)ioerr,
+	  (void *)0x0, (void *)ionull, 0 },
+
+/* KEYBOARD is kbd */
+	{ 12, 0, "KEYBOARD",
+	  (void *)kbdinit, (void *)ionull, (void *)ionull,
+	  (void *)kbdread, (void *)ioerr, (void *)ioerr,
+	  (void *)kbdgetc, (void *)ioerr, (void *)ioerr,
+	  (void *)0x0, (void *)kbddisp, 33 }
 };
