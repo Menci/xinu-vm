@@ -8,6 +8,7 @@
 					/*    that executes command	*/
 #define	SHELL_ARGLEN	(SHELL_BUFLEN+SHELL_MAXTOK) /* Argument area	*/
 #define SHELL_CMDPRIO	20		/* Process priority for command	*/
+#define SHELL_CMD_TIME_SLICE   20		/* Process priority for command	*/
 
 /* Message constants */
 

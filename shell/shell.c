@@ -21,6 +21,7 @@ const	struct	cmdent	cmdtab[] = {
 	{"memstat",	FALSE,	xsh_memstat},
 	{"ps",		FALSE,	xsh_ps},
 	{"sleep",	FALSE,	xsh_sleep},
+	{"sort",	FALSE,	xsh_sort},
 	{"uptime",	FALSE,	xsh_uptime},
 	{"?",		FALSE,	xsh_help}
 
@@ -273,17 +274,33 @@ process	shell (
 		/* Spawn child thread for non-built-in commands */
 
 		child = create(cmdtab[j].cfunc,
-			SHELL_CMDSTK, SHELL_CMDPRIO,
-			cmdtab[j].cname, 2, ntok, &tmparg);
+			SHELL_CMDPRIO, SHELL_CMD_TIME_SLICE,
+			cmdtab[j].cname, 2, ntok, VM_SHELL_ARGUMENT_PAGE_ADDRESS);
+
+		/* Pass arguments to child process */
+
+		static char argumentsPageContent[VM_PAGE_SIZE];
+		void **argumentsBufferAddress = (void **)argumentsPageContent;
+		void **argumentsVirtualAddress = (void **)VM_SHELL_ARGUMENT_PAGE_ADDRESS;
+
+		char *argumentDataBufferAddress = (char *)(argumentsBufferAddress + ntok);
+		char *argumentDataVirtualAddress = (char *)(argumentsVirtualAddress + ntok);
+		memcpy(argumentDataBufferAddress, tokbuf, tlen);
+
+		for (uint32 i = 0; i < ntok; i++)
+			argumentsBufferAddress[i] = &argumentDataVirtualAddress[tok[i]];
+
+		allocateVirtualMemoryPages(proctab[child].pageDirectoryPhysicalAddress, VM_SHELL_ARGUMENT_PAGE_ID, 1);
+		writeToAnotherVirtualMemorySpacePage(proctab[child].pageDirectoryPhysicalAddress, VM_SHELL_ARGUMENT_PAGE_ID, argumentsPageContent);
 
 		/* If creation or argument copy fails, report error */
 
-		if ((child == SYSERR) ||
-		    (addargs(child, ntok, tok, tlen, tokbuf, &tmparg)
-							== SYSERR) ) {
+		if (child == SYSERR) {
 			fprintf(dev, SHELL_CREATMSG);
 			continue;
 		}
+
+		kprintf("shell: backgnd = %d\n", backgnd);
 
 		/* Set stdinput and stdoutput in child to redirect I/O */
 

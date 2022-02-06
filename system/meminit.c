@@ -55,19 +55,11 @@ extern	struct	sd gdt[];	/* Global segment table			*/
  */
 void	meminit(void) {
 
-	struct	memblk	*memptr;	/* Ptr to memory block		*/
 	struct	mbmregion	*mmap_addr;	/* Ptr to mmap entries		*/
 	struct	mbmregion	*mmap_addrend;	/* Ptr to end of mmap region	*/
-	struct	memblk	*next_memptr;	/* Ptr to next memory block	*/
-	uint32	next_block_length;	/* Size of next memory block	*/
 
 	mmap_addr = (struct mbmregion*)NULL;
 	mmap_addrend = (struct mbmregion*)NULL;
-
-	/* Initialize the free list */
-	memptr = &memlist;
-	memptr->mnext = (struct memblk *)NULL;
-	memptr->mlength = 0;
 
 	/* Initialize the memory counters */
 	/*    Heap starts at the end of Xinu image */
@@ -115,33 +107,23 @@ void	meminit(void) {
 		  ((mmap_addr->base_addr + mmap_addr->length) >
 		  (uint32)minheap)) {
 
-			/* This is the first free block, base address is the minheap */
-			next_memptr = (struct memblk *)roundmb(minheap);
-
-			/* Subtract Xinu image from length of block */
-			next_block_length = (uint32)truncmb(mmap_addr->base_addr + mmap_addr->length - (uint32)minheap);
+			appendNewAvailableMemoryToFreePages(
+				/* This is the first free block, base address is the minheap */
+				roundmb(minheap),
+				/* Subtract Xinu image from length of block */
+				(uint32)truncmb(mmap_addr->base_addr + mmap_addr->length - (uint32)minheap)
+			);
 		} else {
 
-			/* Handle a free memory block other than the first one */
-			next_memptr = (struct memblk *)roundmb(mmap_addr->base_addr);
-
-			/* Initialize the length of the block */
-			next_block_length = (uint32)truncmb(mmap_addr->length);
+			appendNewAvailableMemoryToFreePages(
+				/* Handle a free memory block other than the first one */
+				roundmb(mmap_addr->base_addr),
+				/* Initialize the length of the block */
+				(uint32)truncmb(mmap_addr->length)
+			);
 		}
-
-		/* Add then new block to the free list */
-		memptr->mnext = next_memptr;
-		memptr = memptr->mnext;
-		memptr->mlength = next_block_length;
-		memlist.mlength += next_block_length;
-
 		/* Move to the next mmap block */
 		mmap_addr = (struct mbmregion*)((uint8*)mmap_addr + mmap_addr->size + 4);
-	}
-
-	/* End of all mmap blocks, and so end of Xinu free list */
-	if(memptr) {
-		memptr->mnext = (struct memblk *)NULL;
 	}
 }
 

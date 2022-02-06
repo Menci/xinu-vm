@@ -1,4 +1,5 @@
 /* xinu.h - include all system header files */
+#pragma once
 
 #include <kernel.h>
 #include <conf.h>
@@ -8,6 +9,9 @@
 #include <mark.h>
 #include <semaphore.h>
 #include <memory.h>
+#include <vm.h>
+#include <heap.h>
+#include <malloc.h>
 #include <bufpool.h>
 #include <clock.h>
 #include <ports.h>

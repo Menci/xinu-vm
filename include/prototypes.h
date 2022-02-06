@@ -30,10 +30,10 @@ extern	syscall	close(did32);
 extern	syscall	control(did32, int32, int32, int32);
 
 /* in file create.c */
-extern	pid32	create(void *, uint32, pri16, char *, uint32, ...);
+extern	pid32	create(void *, pri16, int32, char *, uint32, ...);
 
 /* in file ctxsw.S */
-extern	void	ctxsw(void *, void *);
+extern	void	ctxsw(void *, void *, void *, uint32);
 
 /* in file exit.c */
 extern	void	exit(void);
@@ -74,9 +74,6 @@ extern	pid32	getpid(void);
 
 /* in file getprio.c */
 extern	syscall	getprio(pid32);
-
-/* in file getstk.c */
-extern	char	*getstk(uint32);
 
 /* in file getticks.c */
 extern	uint64	getticks(void);

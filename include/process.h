@@ -1,5 +1,7 @@
 /* process.h - isbadpid */
 
+#include <vm.h>
+
 /* Maximum number of processes in the system */
 
 #ifndef NPROC
@@ -26,6 +28,7 @@
 
 #define	INITSTK		65536	/* Initial process stack size		*/
 #define	INITPRIO	20	/* Initial process priority		*/
+#define	INIT_TIME_SLICE	20	/* Initial process priority		*/
 #define	INITRET		userret	/* Address to which process returns	*/
 
 /* Inline code to check process ID (assumes interrupts are disabled)	*/
@@ -43,6 +46,12 @@
 struct procent {		/* Entry in the process table		*/
 	uint16	prstate;	/* Process state: PR_CURR, etc.		*/
 	pri16	prprio;		/* Process priority			*/
+	int32	prtimeslice;
+	int32	prcurrtimeslice;
+	int32	prtimeslicecnt;
+	int32	prtottime;
+	PageDirectory pageDirectoryPhysicalAddress;
+	uint32 heapSize;
 	char	*prstkptr;	/* Saved stack pointer			*/
 	char	*prstkbase;	/* Base of run time stack		*/
 	uint32	prstklen;	/* Stack length in bytes		*/

@@ -9,6 +9,9 @@
  */
 syscall stacktrace(int pid)
 {
+	kprintf("stacktrace: not implemented\n");
+	return SYSERR;
+
 	struct procent	*proc = &proctab[pid];
 	unsigned long	*sp, *fp;
 
