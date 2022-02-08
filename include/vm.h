@@ -21,7 +21,14 @@
 #define VM_STACK_VIRTUAL_ADDRESS_HIGH                   (pageIdToPageAddress(VM_STACK_VIRTUAL_PAGE_ID_END))
 #define VM_STACK_VIRTUAL_ADDRESS_LOW                    (pageIdToPageAddress(VM_STACK_VIRTUAL_PAGE_ID_BEGIN))
 
-#define VM_SHELL_ARGUMENT_PAGE_ID                       (VM_STACK_VIRTUAL_PAGE_ID_BEGIN - 1)
+#define VM_KSTACK_PAGES_PER_PROCESS                     1024
+#define VM_KSTACK_SIZE_PER_PROCESS                      (VM_KSTACK_PAGES_PER_PROCESS * VM_PAGE_SIZE)
+#define VM_KSTACK_VIRTUAL_PAGE_ID_END                   (VM_STACK_VIRTUAL_PAGE_ID_BEGIN - 1)
+#define VM_KSTACK_VIRTUAL_PAGE_ID_BEGIN                 (VM_KSTACK_VIRTUAL_PAGE_ID_END - VM_KSTACK_PAGES_PER_PROCESS)
+#define VM_KSTACK_VIRTUAL_ADDRESS_HIGH                  (pageIdToPageAddress(VM_KSTACK_VIRTUAL_PAGE_ID_END))
+#define VM_KSTACK_VIRTUAL_ADDRESS_LOW                   (pageIdToPageAddress(VM_KSTACK_VIRTUAL_PAGE_ID_BEGIN))
+
+#define VM_SHELL_ARGUMENT_PAGE_ID                       (VM_KSTACK_VIRTUAL_PAGE_ID_BEGIN - 1)
 #define VM_SHELL_ARGUMENT_PAGE_ADDRESS                  (pageIdToPageAddress(VM_SHELL_ARGUMENT_PAGE_ID))
 
 #define VM_HEAP_START_PAGE_ID                           VM_KERNEL_PAGE_COUNT

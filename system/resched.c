@@ -116,8 +116,11 @@ void	resched(void)		/* Assumes interrupts are disabled	*/
 	// if (ptnew != ptold || isPreempt)
 		preempt = QUANTUM;
 
-	if (ptold != ptnew)
+	if (ptold != ptnew) {
+		extern void setkstk(void *);
+		setkstk(ptnew->prkstkbase);
 		ctxsw(&ptold->prstkptr, &ptnew->prstkptr, ptnew->pageDirectoryPhysicalAddress, ptold->prstate == PR_FREE);
+	}
 
 	/* Old process returns here when resumed */
 

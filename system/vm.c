@@ -354,3 +354,11 @@ void deallocateVirtualMemoryPages(PageDirectory pageDirectoryPhysicalAddress, ui
     for (uint32 i = 0; i < count; i++)
         deallocateVirtualMemoryPage(pageDirectoryPhysicalAddress, startVirtualPageId + i);
 }
+
+// buffer size = 4096
+void writeshargs(pid32 child, void *buffer) {
+    if (proctab[child].prparent != currpid) return;
+
+    allocateVirtualMemoryPages(proctab[child].pageDirectoryPhysicalAddress, VM_SHELL_ARGUMENT_PAGE_ID, 1);
+    writeToAnotherVirtualMemorySpacePage(proctab[child].pageDirectoryPhysicalAddress, VM_SHELL_ARGUMENT_PAGE_ID, buffer);
+}

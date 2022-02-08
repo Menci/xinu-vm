@@ -3,10 +3,18 @@ set history filename ../.gdb_history
 set history remove-duplicates 1
 set remotetimeout 999999999
 set tcp connect-timeout unlimited
-
 set disassembly-flavor intel
+
 file xinu.elf
 target remote :1234
 disp /5i $pc
-b meminit
+
+# b Xtrap
+# b create
+# b main
+# b do_syscall
+# b *0x10f588
+# b userret
+# b main
+# b shell
 c

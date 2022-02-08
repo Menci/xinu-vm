@@ -53,6 +53,8 @@ struct procent {		/* Entry in the process table		*/
 	PageDirectory pageDirectoryPhysicalAddress;
 	uint32 heapSize;
 	char	*prstkptr;	/* Saved stack pointer			*/
+	char	*prkstkbase;	/* Base of run time kernel stack		*/
+	uint32	prkstklen;	/* Kernel stack length in bytes		*/
 	char	*prstkbase;	/* Base of run time stack		*/
 	uint32	prstklen;	/* Stack length in bytes		*/
 	char	prname[PNMLEN];	/* Process name				*/

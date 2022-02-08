@@ -84,11 +84,11 @@ process	shell (
 
 	/* Print shell banner and startup message */
 
-	fprintf(dev, "\n\n%s%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n",
+	syscall_fprintf(dev, "\n\n%s%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n",
 		SHELL_BAN0,SHELL_BAN1,SHELL_BAN2,SHELL_BAN3,SHELL_BAN4,
 		SHELL_BAN5,SHELL_BAN6,SHELL_BAN7,SHELL_BAN8,SHELL_BAN9);
 
-	fprintf(dev, "%s\n\n", SHELL_STRTMSG);
+	syscall_fprintf(dev, "%s\n\n", SHELL_STRTMSG);
 
 	/* Continually prompt the user, read input, and execute command	*/
 
@@ -96,11 +96,11 @@ process	shell (
 
 		/* Display prompt */
 
-		fprintf(dev, SHELL_PROMPT);
+		syscall_fprintf(dev, SHELL_PROMPT);
 
 		/* Read a command */
 
-		len = read(dev, buf, sizeof(buf));
+		len = syscall_read(dev, buf, sizeof(buf));
 
 		/* Exit gracefully on end-of-file */
 
@@ -123,14 +123,14 @@ process	shell (
 		/* Handle parsing error */
 
 		if (ntok == SYSERR) {
-			fprintf(dev,"%s\n", SHELL_SYNERRMSG);
+			syscall_fprintf(dev,"%s\n", SHELL_SYNERRMSG);
 			continue;
 		}
 
 		/* If line is empty, go to next input line */
 
 		if (ntok == 0) {
-			fprintf(dev, "\n");
+			syscall_fprintf(dev, "\n");
 			continue;
 		}
 
@@ -151,7 +151,7 @@ process	shell (
 		if ( (ntok >=3) && ( (toktyp[ntok-2] == SH_TOK_LESS)
 				   ||(toktyp[ntok-2] == SH_TOK_GREATER))){
 			if (toktyp[ntok-1] != SH_TOK_OTHER) {
-				fprintf(dev,"%s\n", SHELL_SYNERRMSG);
+				syscall_fprintf(dev,"%s\n", SHELL_SYNERRMSG);
 				continue;
 			}
 			if (toktyp[ntok-2] == SH_TOK_LESS) {
@@ -167,18 +167,18 @@ process	shell (
 		if ( (ntok >=3) && ( (toktyp[ntok-2] == SH_TOK_LESS)
 				   ||(toktyp[ntok-2] == SH_TOK_GREATER))){
 			if (toktyp[ntok-1] != SH_TOK_OTHER) {
-				fprintf(dev,"%s\n", SHELL_SYNERRMSG);
+				syscall_fprintf(dev,"%s\n", SHELL_SYNERRMSG);
 				continue;
 			}
 			if (toktyp[ntok-2] == SH_TOK_LESS) {
 				if (inname != NULL) {
-				    fprintf(dev,"%s\n", SHELL_SYNERRMSG);
+				    syscall_fprintf(dev,"%s\n", SHELL_SYNERRMSG);
 				    continue;
 				}
 				inname = &tokbuf[tok[ntok-1]];
 			} else {
 				if (outname != NULL) {
-				    fprintf(dev,"%s\n", SHELL_SYNERRMSG);
+				    syscall_fprintf(dev,"%s\n", SHELL_SYNERRMSG);
 				    continue;
 				}
 				outname = &tokbuf[tok[ntok-1]];
@@ -195,7 +195,7 @@ process	shell (
 			}
 		}
 		if ((ntok == 0) || (i < ntok)) {
-			fprintf(dev, SHELL_SYNERRMSG);
+			syscall_fprintf(dev, SHELL_SYNERRMSG);
 			continue;
 		}
 
@@ -225,7 +225,7 @@ process	shell (
 		/* Handle command not found */
 
 		if (j >= ncmd) {
-			fprintf(dev, "command %s not found\n", tokbuf);
+			syscall_fprintf(dev, "command %s not found\n", tokbuf);
 			continue;
 		}
 
@@ -233,7 +233,7 @@ process	shell (
 
 		if (cmdtab[j].cbuiltin) { /* No background or redirect. */
 			if (inname != NULL || outname != NULL || backgnd){
-				fprintf(dev, SHELL_BGERRMSG);
+				syscall_fprintf(dev, SHELL_BGERRMSG);
 				continue;
 			} else {
 				/* Set up arg vector for call */
@@ -255,25 +255,25 @@ process	shell (
 		/* Open files and redirect I/O if specified */
 
 		if (inname != NULL) {
-			stdinput = open(NAMESPACE,inname,"ro");
+			stdinput = syscall_open(NAMESPACE,inname,"ro");
 			if (stdinput == SYSERR) {
-				fprintf(dev, SHELL_INERRMSG, inname);
+				syscall_fprintf(dev, SHELL_INERRMSG, inname);
 				continue;
 			}
 		}
 		if (outname != NULL) {
-			stdoutput = open(NAMESPACE,outname,"w");
+			stdoutput = syscall_open(NAMESPACE,outname,"w");
 			if (stdoutput == SYSERR) {
-				fprintf(dev, SHELL_OUTERRMSG, outname);
+				syscall_fprintf(dev, SHELL_OUTERRMSG, outname);
 				continue;
 			} else {
-				control(stdoutput, F_CTL_TRUNC, 0, 0);
+				syscall_control(stdoutput, F_CTL_TRUNC, 0, 0);
 			}
 		}
 
 		/* Spawn child thread for non-built-in commands */
 
-		child = create(cmdtab[j].cfunc,
+		child = syscall_create(cmdtab[j].cfunc,
 			SHELL_CMDPRIO, SHELL_CMD_TIME_SLICE,
 			cmdtab[j].cname, 2, ntok, VM_SHELL_ARGUMENT_PAGE_ADDRESS);
 
@@ -290,35 +290,32 @@ process	shell (
 		for (uint32 i = 0; i < ntok; i++)
 			argumentsBufferAddress[i] = &argumentDataVirtualAddress[tok[i]];
 
-		allocateVirtualMemoryPages(proctab[child].pageDirectoryPhysicalAddress, VM_SHELL_ARGUMENT_PAGE_ID, 1);
-		writeToAnotherVirtualMemorySpacePage(proctab[child].pageDirectoryPhysicalAddress, VM_SHELL_ARGUMENT_PAGE_ID, argumentsPageContent);
+		syscall_writeshargs(child, argumentsPageContent);
 
 		/* If creation or argument copy fails, report error */
 
 		if (child == SYSERR) {
-			fprintf(dev, SHELL_CREATMSG);
+			syscall_fprintf(dev, SHELL_CREATMSG);
 			continue;
 		}
-
-		kprintf("shell: backgnd = %d\n", backgnd);
 
 		/* Set stdinput and stdoutput in child to redirect I/O */
 
 		proctab[child].prdesc[0] = stdinput;
 		proctab[child].prdesc[1] = stdoutput;
 
-		msg = recvclr();
-		resume(child);
+		msg = syscall_recvclr();
+		syscall_resume(child);
 		if (! backgnd) {
-			msg = receive();
+			msg = syscall_receive();
 			while (msg != child) {
-				msg = receive();
+				msg = syscall_receive();
 			}
 		}
     }
 
     /* Terminate the shell process by returning from the top level */
 
-    fprintf(dev,SHELL_EXITMSG);
+    syscall_fprintf(dev,SHELL_EXITMSG);
     return OK;
 }

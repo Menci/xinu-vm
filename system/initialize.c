@@ -93,7 +93,7 @@ local process	startup(void)
 {
 	/* Create a process to execute function main() */
 
-	resume(create((void *)main, INITPRIO, INIT_TIME_SLICE,
+	syscall_resume(syscall_create((void *)main, INITPRIO, INIT_TIME_SLICE,
 					"Main process", 0, NULL));
 
 	/* Startup process exits at this point */
@@ -113,6 +113,10 @@ static	void	sysinit()
 	int32	i;
 	struct	procent	*prptr;		/* Ptr to process table entry	*/
 	struct	sentry	*semptr;	/* Ptr to semaphore table entry	*/
+
+	// Load TSS
+	extern void loadtss();
+	loadtss();
 
 	/* Platform Specific Initialization */
 
@@ -162,8 +166,8 @@ static	void	sysinit()
 	prptr->prtottime = 0;
 	prptr->pageDirectoryPhysicalAddress = initializationPageDirectoryPhysicalAddress;
 	strncpy(prptr->prname, "prnull", 7);
-	prptr->prstkbase = VM_STACK_VIRTUAL_ADDRESS_HIGH;
-	prptr->prstklen = VM_STACK_SIZE_PER_PROCESS;
+	prptr->prkstkbase = VM_STACK_VIRTUAL_ADDRESS_HIGH;
+	prptr->prkstklen = VM_STACK_SIZE_PER_PROCESS;
 	allocateVirtualMemoryPages(initializationPageDirectoryPhysicalAddress, VM_STACK_VIRTUAL_PAGE_ID_BEGIN, VM_STACK_PAGES_PER_PROCESS);
 	prptr->prstkptr = 0;
 	currpid = NULLPROC;

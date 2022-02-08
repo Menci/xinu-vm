@@ -1,0 +1,15 @@
+{
+  "files.associations": {
+    "*.ejs": "html",
+    "__config": "c",
+    "xinu.h": "c",
+    "kernel.h": "c"
+  },
+  "C_Cpp.default.includePath": [
+    "include"
+  ],
+  "clangd.fallbackFlags": [
+    "-I/Users/Menci/Projects/xinu/include",
+    "-m32"
+  ]
+}

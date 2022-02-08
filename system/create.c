@@ -44,6 +44,8 @@ pid32	create(
 	prptr->heapSize = 0;
 	prptr->prstkbase = VM_STACK_VIRTUAL_ADDRESS_HIGH;
 	prptr->prstklen = VM_STACK_SIZE_PER_PROCESS;
+	prptr->prkstkbase = VM_KSTACK_VIRTUAL_ADDRESS_HIGH;
+	prptr->prkstklen = VM_KSTACK_SIZE_PER_PROCESS;
 	prptr->prname[PNMLEN-1] = NULLCH;
 	for (i=0 ; i<PNMLEN-1 && (prptr->prname[i]=name[i])!=NULLCH; i++)
 		;
@@ -82,7 +84,8 @@ pid32	create(
 	/*   ebp, interrupt mask, flags, registers, and an old SP	*/
 
 	--stackVirtualAddress;
-	*--stackBufferAddress = (long)funcaddr;	/* Make the stack look like it's*/
+	extern void ring3();
+	*--stackBufferAddress = (long)&ring3;	/* Make the stack look like it's*/
 					/*   half-way through a call to	*/
 					/*   ctxsw that "returns" to the*/
 					/*   new process		*/
@@ -96,6 +99,9 @@ pid32	create(
 
 	/* Basically, the following emulates an x86 "pushal" instruction*/
 
+	// ring3()
+	// edi: user space eip
+
 	--stackVirtualAddress;
 	*--stackBufferAddress = 0;			/* %eax */
 	--stackVirtualAddress;
@@ -106,18 +112,21 @@ pid32	create(
 	*--stackBufferAddress = 0;			/* %ebx */
 	--stackVirtualAddress;
 	*--stackBufferAddress = 0;			/* %esp; value filled in below	*/
-	uint32 *pushSpBufferAddress = stackBufferAddress;			/* Remember this location	*/
 	--stackVirtualAddress;
 	*--stackBufferAddress = savsp;		/* %ebp (while finishing ctxsw)	*/
 	--stackVirtualAddress;
 	*--stackBufferAddress = 0;			/* %esi */
 	--stackVirtualAddress;
-	*--stackBufferAddress = 0;			/* %edi */
-	*stackBufferAddress = (unsigned long) (prptr->prstkptr = (char *)stackVirtualAddress);
+	*--stackBufferAddress = (uint32)funcaddr;			/* %edi */
 
-	// Initialize the stack
+	prptr->prstkptr = (char *)stackVirtualAddress;
+
+	// Initialize the user stack
 	allocateVirtualMemoryPages(prptr->pageDirectoryPhysicalAddress, VM_STACK_VIRTUAL_PAGE_ID_BEGIN, VM_STACK_PAGES_PER_PROCESS);
 	writeToAnotherVirtualMemorySpacePage(prptr->pageDirectoryPhysicalAddress, VM_STACK_VIRTUAL_PAGE_ID_END - 1, initialContentOfStackLastPage);
+
+	// Initialize the kernel stack
+	allocateVirtualMemoryPages(prptr->pageDirectoryPhysicalAddress, VM_KSTACK_VIRTUAL_PAGE_ID_BEGIN, VM_KSTACK_PAGES_PER_PROCESS);
 
 	restore(mask);
 	return pid;
